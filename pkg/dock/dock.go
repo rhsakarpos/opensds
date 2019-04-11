@@ -468,14 +468,20 @@ func (ds *dockServer) CollectMetrics(ctx context2.Context, opt *pb.CollectMetric
 	log.Info("in dock CollectMetrics methods")
 	ds.MetricDriver = drivers.InitMetricDriver(opt.GetDriverName())
 
-	defer drivers.Clean(ds.Driver)
+	//defer drivers.Clean(ds.Driver)
 
 	log.Info("Dock server receive CollectMetrics request, vr =", opt)
 
-	if _,err := ds.MetricDriver.CollectMetrics(opt.MetricValues,opt.InstanceId); err != nil {
+	metricArray,err := ds.MetricDriver.CollectMetrics(opt.MetricValues,opt.InstanceId)
+	fmt.Println("from Dock:", metricArray)
+
+	if  err != nil {
 		log.Error("error occurred in dock module when delete volume:", err)
 		return pb.GenericResponseError(err), err
 	}
+	//fmt.Println(metricArray)
+	pbResponse:=pb.GenericResponseResult(metricArray)
+	fmt.Println(pbResponse)
+	return pbResponse, nil
 
-	return pb.GenericResponseResult(nil), nil
 }

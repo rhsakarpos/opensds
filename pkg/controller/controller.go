@@ -23,12 +23,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/opensds/opensds/pkg/controller/metrics"
-	"net"
-
 	log "github.com/golang/glog"
 	osdsCtx "github.com/opensds/opensds/pkg/context"
 	"github.com/opensds/opensds/pkg/controller/dr"
+	"github.com/opensds/opensds/pkg/controller/metrics"
+	"github.com/opensds/opensds/pkg/controller/metrics/diverters"
 	"github.com/opensds/opensds/pkg/controller/policy"
 	"github.com/opensds/opensds/pkg/controller/selector"
 	"github.com/opensds/opensds/pkg/controller/volume"
@@ -38,6 +37,8 @@ import (
 	"github.com/opensds/opensds/pkg/utils"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"net"
+	"strings"
 )
 
 const (
@@ -882,6 +883,48 @@ func (c *Controller) CollectMetrics(context context2.Context, opt *pb.CollectMet
 
 		return pb.GenericResponseError(err), err
 	}
+	fmt.Println(result)
+
+	// send to all registered diverters
+	// start the dispatcher
+	diverters.StartDispatcher()
+
+	for _,metricSpec := range *result{
+		metricSpec.Name = strings.ReplaceAll(metricSpec.Name, "/","")
+		diverters.SendMetricToRegisteredSenders(metricSpec)
+	}
 
 	return pb.GenericResponseResult(result), nil
+}
+
+
+func (c *Controller) GetMetrics(context context2.Context, opt *pb.GetMetricsOpts) (*pb.GenericResponse, error) {
+	log.Info("in controller collect metrics methods")
+
+	ctx := osdsCtx.NewContextFromJson(opt.GetContext())
+	vol, err := db.C.GetVolume(ctx, opt.InstanceId)
+	if err != nil {
+		log.Error("get volume failed in CollectMetrics method: ", err.Error())
+		return pb.GenericResponseError(err), err
+	}
+
+	dockInfo, err := db.C.GetDockByPoolId(ctx, vol.PoolId)
+	if err != nil {
+		log.Error("when search dock in db by pool id: ", err.Error())
+		return pb.GenericResponseError(err), err
+
+	}
+
+	c.metricsController.SetDock(dockInfo)
+	//opt.DriverName = dockInfo.DriverName
+
+	/*result, err := c.metricsController.CollectMetrics(opt)
+	if err != nil {
+		log.Error("CollectMetrics failed: ", err.Error())
+
+		return pb.GenericResponseError(err), err
+	}
+
+	return pb.GenericResponseResult(result), nil*/
+	return nil, nil
 }

@@ -34,7 +34,7 @@ import (
 // Controller is an interface for exposing some operations of different volume
 // controllers.
 type Controller interface {
-	CollectMetrics(opt *pb.CollectMetricsOpts) (*model.CollectMetricSpec, error)
+	CollectMetrics(opt *pb.CollectMetricsOpts) (*[]model.MetricSpec, error)
 	SetDock(dockInfo *model.DockSpec)
 }
 
@@ -50,7 +50,7 @@ type controller struct {
 	DockInfo *model.DockSpec
 }
 
-func (c *controller) CollectMetrics(opt *pb.CollectMetricsOpts) (*model.CollectMetricSpec, error) {
+func (c *controller) CollectMetrics(opt *pb.CollectMetricsOpts) (*[]model.MetricSpec, error) {
 	if err := c.Client.Connect(c.DockInfo.Endpoint); err != nil {
 		log.Error("when connecting dock client:", err)
 		return nil, err
@@ -68,14 +68,15 @@ func (c *controller) CollectMetrics(opt *pb.CollectMetricsOpts) (*model.CollectM
 			fmt.Errorf("failed to create volume in volume controller, code: %v, message: %v",
 				errorMsg.GetCode(), errorMsg.GetDescription())
 	}
+	vol:= make([]model.MetricSpec,0)
 
-	var vol = &model.CollectMetricSpec{}
-	if err = json.Unmarshal([]byte(response.GetResult().GetMessage()), vol); err != nil {
+	//var vol = &model.MetricSpec{}
+	if err = json.Unmarshal([]byte(response.GetResult().GetMessage()), &vol); err != nil {
 		log.Error("create volume failed in volume controller:", err)
 		return nil, err
 	}
 
-	return vol, nil
+	return &vol, nil
 
 }
 

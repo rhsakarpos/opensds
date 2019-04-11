@@ -60,7 +60,7 @@ func Run(apiServerCfg cfg.OsdsApiServer) {
 			}),
 
 			// List all dock services, including a list of dock object
-			beego.NSRouter("/:tenantId/metrics", NewMetricsPortal(), "post:CollectMetrics"),
+			beego.NSRouter("/:tenantId/metrics", NewMetricsPortal(), "post:CollectMetrics;get:GetMetrics"),
 
 			// List all dock services, including a list of dock object
 			beego.NSRouter("/:tenantId/docks", &DockPortal{}, "get:ListDocks"),

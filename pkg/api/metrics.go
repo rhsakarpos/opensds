@@ -50,7 +50,7 @@ func (m *MetricsPortal) CollectMetrics() {
 	}
 	ctx := c.GetContext(m.Ctx)
 	var collMetricSpec = model.CollectMetricSpec{
-		BaseModel: &model.BaseModel{},
+
 	}
 
 	// Unmarshal the request body
@@ -77,6 +77,48 @@ func (m *MetricsPortal) CollectMetrics() {
 		Context: 		ctx.ToJson(),
 	}
 	if _, err := m.CtrClient.CollectMetrics(context.Background(), opt); err != nil {
+		log.Error("collect metrics failed in controller service:", err)
+		return
+	}
+
+	return
+}
+
+func (m *MetricsPortal) GetMetrics() {
+	if !policy.Authorize(m.Ctx, "metrics:get") {
+		return
+	}
+	ctx := c.GetContext(m.Ctx)
+	var getMetricSpec = model.GetMetricSpec{
+		BaseModel: &model.BaseModel{},
+	}
+
+	// Unmarshal the request body
+	if err := json.NewDecoder(m.Ctx.Request.Body).Decode(&getMetricSpec); err != nil {
+		errMsg := fmt.Sprintf("parse get metric request body failed: %s", err.Error())
+		m.ErrorHandle(model.ErrorBadRequest, errMsg)
+		return
+	}
+
+	m.SuccessHandle(StatusOK, nil)
+
+	// NOTE:The real volume creation process.
+	// Volume creation request is sent to the Dock. Dock will update volume status to "available"
+	// after volume creation is completed.
+	if err := m.CtrClient.Connect(CONF.OsdsLet.ApiEndpoint); err != nil {
+		log.Error("when connecting controller client:", err)
+		return
+	}
+	defer m.CtrClient.Close()
+
+	opt := &pb.GetMetricsOpts{
+		InstanceId:   getMetricSpec.InstanceId,
+		MetricName: getMetricSpec.MetricName,
+		StartTime: getMetricSpec.StartTime,
+		EndTime: getMetricSpec.EndTime,
+		Context:      ctx.ToJson(),
+	}
+	if _, err := m.CtrClient.GetMetrics(context.Background(), opt); err != nil {
 		log.Error("collect metrics failed in controller service:", err)
 		return
 	}

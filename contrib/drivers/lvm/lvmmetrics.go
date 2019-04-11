@@ -3,6 +3,7 @@ package lvm
 import (
 	"fmt"
 	"github.com/opensds/opensds/pkg/model"
+	"strconv"
 )
 
 // Copyright (c) 2017 Huawei Technologies Co., Ltd. All Rights Reserved.
@@ -28,12 +29,42 @@ type MetricDriver struct {
 
 
 
-func (d *MetricDriver) CollectMetrics(metricsList []string,instanceID string) (metricArray []*model.Metric, err error) {
+func (d *MetricDriver) CollectMetrics(metricsList []string,instanceID string) (metricArray []model.Metric, err error) {
 
 
 	metricMap,err := d.cli.CollectMetrics(metricsList,instanceID)
 	fmt.Println(metricMap)
+	var tempmetricArray []model.Metric
+	for _,element := range metricsList {
+		val,_:=strconv.ParseFloat(metricMap[element],64)
+		m := make(map[string]string)
+		metric := model.Metric{
+			InstanceID: instanceID,
 
+			InstanceName:metricMap["InstanceName"],
+
+			Job: "OpenSDS",
+
+			Associator: m,
+
+			Source: "Node",
+
+			Component: "Volume",
+
+			Name: element,
+
+			Unit: "KB/s",
+
+			IsAggregated: false,
+
+			Timestamp: 000,
+
+			Value: val,
+		}
+		tempmetricArray = append(tempmetricArray, metric)
+	}
+	metricArray=tempmetricArray
+	fmt.Println(metricArray)
 	return
 }
 

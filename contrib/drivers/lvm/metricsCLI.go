@@ -3,10 +3,9 @@ package lvm
 import (
 	"fmt"
 	"log"
-	"regexp"
-	"strconv"
-	"strings"
 	myExec "os/exec"
+	"regexp"
+	"strings"
 )
 
 // Copyright (c) 2018 Huawei Technologies Co., Ltd. All Rights Reserved.
@@ -28,7 +27,7 @@ type MetricsCli struct {
 }
 
 
-func (c *MetricsCli) CollectMetrics(metricList []string,instanceID string) (map[string] float64,error) {
+func (c *MetricsCli) CollectMetrics(metricList []string,instanceID string) (map[string] string,error) {
 
 	cmd := myExec.Command("iostat", "-N")
 
@@ -46,7 +45,7 @@ func (c *MetricsCli) CollectMetrics(metricList []string,instanceID string) (map[
 
 	instanceID = strings.Replace(instanceID, "-", "--",-1)
 
-	returnMap := make(map[string] float64)
+	returnMap := make(map[string] string)
 	for _, element := range someSlice {
 		// index is the index where we are
 		// element is the element from someSlice for where we are
@@ -54,7 +53,7 @@ func (c *MetricsCli) CollectMetrics(metricList []string,instanceID string) (map[
 		if strings.Contains(element, instanceID) {
 			//strings.Replace(element," ","",-1)
 			//strings.FieldsFunc()
-			tokens:=regexp.MustCompile(" .")
+			tokens:=regexp.MustCompile(" ")
 			stringSlice:=tokens.Split(element,-1)
 			// remove all empty space
 			var temparray = make([]string,0,0)
@@ -64,8 +63,9 @@ func (c *MetricsCli) CollectMetrics(metricList []string,instanceID string) (map[
 				}
 			}
 			for _,metric := range metricList{
-				val,_:=strconv.ParseFloat(temparray[metricMap[metric]],64)
+				val:=temparray[metricMap[metric]]
 				returnMap[metric]=val
+				returnMap["InstanceName"]=temparray[0]
 
 			}
 

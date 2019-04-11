@@ -32,10 +32,26 @@ type CollectMetricSpec struct {
 	Metrics []string `json:"metrics,omitempty"`
 }
 
-type Metric struct {
+type GetMetricSpec struct {
+	*BaseModel
 
+	// the instance on which the metrics are to be collected
+	InstanceId string `json:"instanceId,omitempty"`
 
+	// The uuid of the user that the volume belongs to.
+	// +optional
+	MetricName string `json:"metricName,omitempty"`
 
+	StartTime float32 `json:"startTime,omitempty"`
+
+	EndTime float32 `json:"endTime,omitempty"`
+}
+
+type MetricValues struct {
+	InstanceId string
+}
+
+type MetricSpec struct {
 	// Following are the labels associated with Metric, same as Prometheus labels
 
 
@@ -46,19 +62,19 @@ type Metric struct {
 
 	// Instance ID -\> volumeID/NodeID
 
-	instanceID string
+	InstanceID string `json:"InstanceID,omitempty"`
 
 
 
 	// instance name -\> volume name / node name etc.
 
-	instanceName string
+	InstanceName string `json:"InstanceName,omitempty"`
 
 
 
 	// job -\> Prometheus/openSDS
 
-	job string
+	Job string `json:"Job,omitempty"`
 
 
 
@@ -88,7 +104,7 @@ type Metric struct {
 
 
 
-	associator map[string]string
+	Associator map[string]string `json:"Associator,omitempty"`
 
 
 
@@ -98,25 +114,25 @@ type Metric struct {
 
 	// source -\> Node/Dock
 
-	source string
+	Source string `json:"Source,omitempty"`
 
 
 
 	// component -\> disk/logicalVolume/VG etc
 
-	component string
+	Component string `json:"Component,omitempty"`
 
 
 
 	// name -\> metric name -\> readRequests/WriteRequests/Latency etc
 
-	name string
+	Name string `json:"Name,omitempty"`
 
 
 
 	// unit -\> seconds/bytes/MBs etc
 
-	unit string
+	Unit string `json:"Unit,omitempty"`
 
 
 
@@ -124,7 +140,7 @@ type Metric struct {
 
 
 
-	isAggregated bool
+	IsAggregated bool `json:"IsAggregated,omitempty"`
 
 
 
@@ -148,13 +164,138 @@ type Metric struct {
 
 	//timestamp
 
-	timestamp int64
+	Timestamp int64 `json:"Timestamp,omitempty"`
 
 
 
 	//value
 
-	value float64
+	Value float64 `json:"Value,omitempty"`
+}
+
+type Metric struct {
+
+
+
+	// Following are the labels associated with Metric, same as Prometheus labels
+
+
+
+	//Example: {device="dm-0",instance="121.244.95.60:12419",job="prometheus"}
+
+
+
+	// Instance ID -\> volumeID/NodeID
+
+	InstanceID string
+
+
+
+	// instance name -\> volume name / node name etc.
+
+	InstanceName string
+
+
+
+	// job -\> Prometheus/openSDS
+
+	Job string
+
+
+
+	/*associator - Some metric would need specific fields to relate components.
+
+	  Use case could be to query volumes of a particular pool. Attaching the related
+
+	  components as labels would help us to form promQl query efficiently.
+
+
+
+	  Example: node_disk_read_bytes_total{instance="121.244.95.60"}
+
+
+
+	  Above query will respond with all disks associated with node 121.244.95.60
+
+
+
+	  Since associated components vary, we will keep a map in metric struct to denote
+
+	  the associated component type as key and component name as value
+
+
+
+	  Example: associator[pool]=pool1 */
+
+
+
+	Associator map[string]string
+
+
+
+	// Following fields can be used to form a unique metric name
+
+
+
+	// source -\> Node/Dock
+
+	Source string
+
+
+
+	// component -\> disk/logicalVolume/VG etc
+
+	Component string
+
+
+
+	// name -\> metric name -\> readRequests/WriteRequests/Latency etc
+
+	Name string
+
+
+
+	// unit -\> seconds/bytes/MBs etc
+
+	Unit string
+
+
+
+	// is aggregated
+
+
+
+	IsAggregated bool
+
+
+
+	// aggr_type-\> Can be used to determine Total/Sum/Avg etc
+
+
+
+	/*If isAggregated ='True' then type of aggregation can be set in this field
+
+	  ie:- if collector is aggregating some metrics and producing a new metric of
+
+	  higher level constructs, then this field can be set as 'Total' to indicate it is
+
+	  aggregated/derived from other metrics.*/
+
+
+
+	//aggr_type AGGR_TYPE
+
+
+
+	//timestamp
+
+	Timestamp int64
+
+
+
+	//value
+
+	Value float64
 
 }
 
