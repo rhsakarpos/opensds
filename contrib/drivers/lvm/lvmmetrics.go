@@ -29,16 +29,25 @@ type MetricDriver struct {
 
 
 
-func (d *MetricDriver) CollectMetrics(metricsList []string,instanceID string) (metricArray []model.Metric, err error) {
+func (d *MetricDriver) CollectMetrics(metricsList []string,instanceID string) (metricArray []model.MetricSpec, err error) {
 
 
 	metricMap,err := d.cli.CollectMetrics(metricsList,instanceID)
 	fmt.Println(metricMap)
-	var tempmetricArray []model.Metric
+
+	var tempmetricArray []model.MetricSpec
 	for _,element := range metricsList {
 		val,_:=strconv.ParseFloat(metricMap[element],64)
 		m := make(map[string]string)
-		metric := model.Metric{
+
+		metricValue := model.Metric{
+			Timestamp:000,
+			Value:val,
+		}
+		metricValues := make([]model.Metric,1)
+		metricValues = append(metricValues, metricValue)
+
+		metric := model.MetricSpec{
 			InstanceID: instanceID,
 
 			InstanceName:metricMap["InstanceName"],
@@ -57,9 +66,7 @@ func (d *MetricDriver) CollectMetrics(metricsList []string,instanceID string) (m
 
 			IsAggregated: false,
 
-			Timestamp: 000,
-
-			Value: val,
+			MetricValues: metricValues,
 		}
 		tempmetricArray = append(tempmetricArray, metric)
 	}

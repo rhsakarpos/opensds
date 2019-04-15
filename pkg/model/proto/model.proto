@@ -678,8 +678,8 @@ message CollectMetricsOpts {
 message GetMetricsOpts {
     string instanceId = 1;
     string metricName = 2;
-    float startTime = 3;
-    float endTime = 4;
+    string startTime = 3;
+    string endTime = 4;
     string context = 5;
 }
 

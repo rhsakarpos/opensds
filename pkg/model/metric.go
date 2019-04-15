@@ -42,14 +42,11 @@ type GetMetricSpec struct {
 	// +optional
 	MetricName string `json:"metricName,omitempty"`
 
-	StartTime float32 `json:"startTime,omitempty"`
+	StartTime string `json:"startTime,omitempty"`
 
-	EndTime float32 `json:"endTime,omitempty"`
+	EndTime string `json:"endTime,omitempty"`
 }
 
-type MetricValues struct {
-	InstanceId string
-}
 
 type MetricSpec struct {
 	// Following are the labels associated with Metric, same as Prometheus labels
@@ -160,141 +157,12 @@ type MetricSpec struct {
 
 	//aggr_type AGGR_TYPE
 
-
-
-	//timestamp
-
-	Timestamp int64 `json:"Timestamp,omitempty"`
-
-
-
-	//value
-
-	Value float64 `json:"Value,omitempty"`
+	MetricValues []Metric
 }
 
 type Metric struct {
 
-
-
-	// Following are the labels associated with Metric, same as Prometheus labels
-
-
-
-	//Example: {device="dm-0",instance="121.244.95.60:12419",job="prometheus"}
-
-
-
-	// Instance ID -\> volumeID/NodeID
-
-	InstanceID string
-
-
-
-	// instance name -\> volume name / node name etc.
-
-	InstanceName string
-
-
-
-	// job -\> Prometheus/openSDS
-
-	Job string
-
-
-
-	/*associator - Some metric would need specific fields to relate components.
-
-	  Use case could be to query volumes of a particular pool. Attaching the related
-
-	  components as labels would help us to form promQl query efficiently.
-
-
-
-	  Example: node_disk_read_bytes_total{instance="121.244.95.60"}
-
-
-
-	  Above query will respond with all disks associated with node 121.244.95.60
-
-
-
-	  Since associated components vary, we will keep a map in metric struct to denote
-
-	  the associated component type as key and component name as value
-
-
-
-	  Example: associator[pool]=pool1 */
-
-
-
-	Associator map[string]string
-
-
-
-	// Following fields can be used to form a unique metric name
-
-
-
-	// source -\> Node/Dock
-
-	Source string
-
-
-
-	// component -\> disk/logicalVolume/VG etc
-
-	Component string
-
-
-
-	// name -\> metric name -\> readRequests/WriteRequests/Latency etc
-
-	Name string
-
-
-
-	// unit -\> seconds/bytes/MBs etc
-
-	Unit string
-
-
-
-	// is aggregated
-
-
-
-	IsAggregated bool
-
-
-
-	// aggr_type-\> Can be used to determine Total/Sum/Avg etc
-
-
-
-	/*If isAggregated ='True' then type of aggregation can be set in this field
-
-	  ie:- if collector is aggregating some metrics and producing a new metric of
-
-	  higher level constructs, then this field can be set as 'Total' to indicate it is
-
-	  aggregated/derived from other metrics.*/
-
-
-
-	//aggr_type AGGR_TYPE
-
-
-
-	//timestamp
-
 	Timestamp int64
-
-
-
-	//value
-
 	Value float64
 
 }

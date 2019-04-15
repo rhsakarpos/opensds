@@ -899,32 +899,27 @@ func (c *Controller) CollectMetrics(context context2.Context, opt *pb.CollectMet
 
 
 func (c *Controller) GetMetrics(context context2.Context, opt *pb.GetMetricsOpts) (*pb.GenericResponse, error) {
-	log.Info("in controller collect metrics methods")
+	log.Info("in controller get metrics methods")
 
-	ctx := osdsCtx.NewContextFromJson(opt.GetContext())
-	vol, err := db.C.GetVolume(ctx, opt.InstanceId)
-	if err != nil {
-		log.Error("get volume failed in CollectMetrics method: ", err.Error())
-		return pb.GenericResponseError(err), err
+	var result *[]model.MetricSpec
+	var err error
+
+	if opt.StartTime=="" && opt.EndTime==""{
+		// no start and end time specified, get the latest value of this metric
+		result, err = c.metricsController.GetLatestMetrics(opt)
+	} else if opt.StartTime==opt.EndTime{
+		// same start and end time specified, get the value of this metric at that timestamp
+		result, err = c.metricsController.GetInstantMetrics(opt)
+	} else {
+		// range of start and end time is specified
+		result, err = c.metricsController.GetRangeMetrics(opt)
 	}
 
-	dockInfo, err := db.C.GetDockByPoolId(ctx, vol.PoolId)
 	if err != nil {
-		log.Error("when search dock in db by pool id: ", err.Error())
-		return pb.GenericResponseError(err), err
-
-	}
-
-	c.metricsController.SetDock(dockInfo)
-	//opt.DriverName = dockInfo.DriverName
-
-	/*result, err := c.metricsController.CollectMetrics(opt)
-	if err != nil {
-		log.Error("CollectMetrics failed: ", err.Error())
+		log.Error("GetMetrics failed: ", err.Error())
 
 		return pb.GenericResponseError(err), err
 	}
 
-	return pb.GenericResponseResult(result), nil*/
-	return nil, nil
+	return pb.GenericResponseResult(result), err
 }

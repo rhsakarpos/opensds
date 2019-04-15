@@ -22,9 +22,9 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	c "github.com/opensds/opensds/pkg/context"
 	log "github.com/golang/glog"
 	"github.com/opensds/opensds/pkg/api/policy"
+	c "github.com/opensds/opensds/pkg/context"
 	"github.com/opensds/opensds/pkg/controller/client"
 	"github.com/opensds/opensds/pkg/model"
 	pb "github.com/opensds/opensds/pkg/model/proto"
@@ -118,10 +118,14 @@ func (m *MetricsPortal) GetMetrics() {
 		EndTime: getMetricSpec.EndTime,
 		Context:      ctx.ToJson(),
 	}
-	if _, err := m.CtrClient.GetMetrics(context.Background(), opt); err != nil {
+	res, err := m.CtrClient.GetMetrics(context.Background(), opt);
+
+	if  err != nil {
 		log.Error("collect metrics failed in controller service:", err)
 		return
 	}
+
+	m.SuccessHandle(StatusOK, []byte(res.GetResult().GetMessage()))
 
 	return
 }

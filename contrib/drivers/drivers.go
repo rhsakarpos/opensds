@@ -138,7 +138,7 @@ type MetricDriver interface {
 	//Any operation the volume driver does while stopping.
 	Unset() error
 
-	CollectMetrics(metricList []string,instanceID string) ([]model.Metric, error)
+	CollectMetrics(metricList []string,instanceID string) ([]model.MetricSpec, error)
 }
 
 // Init
