@@ -136,7 +136,7 @@ type MetricDriver interface {
 	//Any initialization the volume driver does while starting.
 	Setup() error
 	//Any operation the volume driver does while stopping.
-	Unset() error
+	Teardown() error
 
 	CollectMetrics(metricList []string,instanceID string) ([]*model.Metric, error)
 }
