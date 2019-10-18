@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Huawei Technologies Co., Ltd. All Rights Reserved.
+// Copyright 2017 The OpenSDS Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -329,6 +329,7 @@ func TestCreateVolumeSnapshot(t *testing.T) {
 		Size:        int64(1),
 		Status:      "available",
 		VolumeId:    "bd5b12a8-a101-11e7-941e-d77981b584d8",
+		ProfileId:   "1106b972-66ef-11e7-b172-db03f3689c9c",
 	}
 
 	snp, err := fv.CreateVolumeSnapshot(&model.VolumeSnapshotSpec{
@@ -356,6 +357,7 @@ func TestGetVolumeSnapshot(t *testing.T) {
 		Size:        int64(1),
 		Status:      "available",
 		VolumeId:    "bd5b12a8-a101-11e7-941e-d77981b584d8",
+		ProfileId:   "1106b972-66ef-11e7-b172-db03f3689c9c",
 	}
 
 	snp, err := fv.GetVolumeSnapshot(snpID)
@@ -439,6 +441,7 @@ func TestUpdateVolumeSnapshot(t *testing.T) {
 		Size:        1,
 		Status:      "available",
 		VolumeId:    "bd5b12a8-a101-11e7-941e-d77981b584d8",
+		ProfileId:   "1106b972-66ef-11e7-b172-db03f3689c9c",
 	}
 
 	if !reflect.DeepEqual(result, expected) {

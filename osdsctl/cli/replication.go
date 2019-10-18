@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Huawei Technologies Co., Ltd. All Rights Reserved.
+// Copyright 2018 The OpenSDS Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,9 +20,8 @@ This module implements a entry into the OpenSDS service.
 package cli
 
 import (
-	"os"
-
 	"encoding/json"
+	"os"
 	"strings"
 
 	"github.com/opensds/opensds/pkg/model"
@@ -122,13 +121,13 @@ func init() {
 	flags := replicationCreateCommand.Flags()
 	flags.StringVarP(&replicationName, "name", "n", "", "the name of created replication")
 	flags.StringVarP(&replicationDesp, "description", "d", "", "the description of created replication")
-	flags.StringVarP(&primaryReplicationDriverData, "primary_driver_data", "p", "", "the primary replication driver data of created replication")
-	flags.StringVarP(&secondaryReplicationDriverData, "secondary_driver_data", "s", "", "the secondary replication driver data of created replication")
+	flags.StringVarP(&primaryReplicationDriverData, "primary_driver_data", "", "", "the primary replication driver data of created replication")
+	flags.StringVarP(&secondaryReplicationDriverData, "secondary_driver_data", "", "", "the secondary replication driver data of created replication")
 	flags.StringVarP(&replicationMode, "replication_mode", "m", model.ReplicationModeSync, "the replication mode of created replication, value can be sync/async")
 	flags.Int64VarP(&replicationPeriod, "replication_period", "t", 0, "the replication period(minute) of created replication, the value must greater than 0, only in sync replication mode should set this value (default 60)")
 	replicationUpdateCommand.Flags().StringVarP(&replicationName, "name", "n", "", "the name of updated replication")
 	replicationUpdateCommand.Flags().StringVarP(&replicationDesp, "description", "d", "", "the description of updated replication")
-	// TODO: Add some other update items, such as status, replicatoin_period ... etc.
+	// TODO: Add some other update items, such as status, replication_period ... etc.
 	replicationFailoverCommand.Flags().BoolVarP(&allowAttachedVolume, "allow_attached_volume", "a", false, "whether allow attached volume when failing over replication")
 	replicationFailoverCommand.Flags().StringVarP(&secondaryBackendId, "secondary_backend_id", "s", model.ReplicationDefaultBackendId, "the secondary backend id of failoverr replication")
 	replicationCommand.AddCommand(replicationShowCommand)
@@ -198,7 +197,7 @@ func replicationCreateAction(cmd *cobra.Command, args []string) {
 	if err != nil {
 		Fatalln(HttpErrStrip(err))
 	}
-	keys := KeyList{"Id", "CreatedAt", "UpdatedAt", "Name", "Description", "AvailabilityZone",
+	keys := KeyList{"Id", "CreatedAt", "Name", "Description", "AvailabilityZone",
 		"PrimaryVolumeId", "SecondaryVolumeId", "PrimaryReplicationDriverData", "SecondaryReplicationDriverData",
 		"ReplicationStatus", "ReplicationMode", "ReplicationPeriod", "ProfileId"}
 	PrintDict(resp, keys, replicationFormatters)
@@ -228,8 +227,8 @@ func replicationListAction(cmd *cobra.Command, args []string) {
 	if err != nil {
 		Fatalln(HttpErrStrip(err))
 	}
-	keys := KeyList{"Id", "Name", "Description", "AvailabilityZone",
-		"PrimaryVolumeId", "SecondaryVolumeId", "ReplicationStatus", "ReplicationMode"}
+	keys := KeyList{"Id", "Name", "Description", "PrimaryVolumeId", "SecondaryVolumeId",
+		"ReplicationStatus", "ReplicationMode"}
 	PrintList(resp, keys, FormatterList{})
 }
 
@@ -244,7 +243,7 @@ func replicationUpdateAction(cmd *cobra.Command, args []string) {
 	if err != nil {
 		Fatalln(HttpErrStrip(err))
 	}
-	keys := KeyList{"Id", "CreatedAt", "UpdatedAt", "Name", "Description", "AvailabilityZone",
+	keys := KeyList{"Id", "UpdatedAt", "Name", "Description", "AvailabilityZone",
 		"PrimaryVolumeId", "SecondaryVolumeId", "PrimaryReplicationDriverData", "SecondaryReplicationDriverData",
 		"ReplicationStatus", "ReplicationMode", "ReplicationPeriod", "ProfileId"}
 	PrintDict(resp, keys, replicationFormatters)

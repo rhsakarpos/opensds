@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Huawei Technologies Co., Ltd. All Rights Reserved.
+// Copyright 2017 The OpenSDS Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package volume
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -22,7 +23,6 @@ import (
 	"github.com/opensds/opensds/pkg/model"
 	pb "github.com/opensds/opensds/pkg/model/proto"
 	. "github.com/opensds/opensds/testutils/collection"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
@@ -208,6 +208,14 @@ func (fc *fakeClient) FailoverReplication(ctx context.Context, in *pb.FailoverRe
 	}, nil
 }
 
+func (fc *fakeClient) CollectMetrics(ctx context.Context, in *pb.CollectMetricsOpts, opts ...grpc.CallOption) (*pb.GenericResponse, error) {
+	return &pb.GenericResponse{
+		Reply: &pb.GenericResponse_Result_{
+			Result: &pb.GenericResponse_Result{},
+		},
+	}, nil
+}
+
 func NewFakeController() Controller {
 	return &controller{
 		Client:   NewFakeClient(),
@@ -337,4 +345,37 @@ func TestDisableReplication(t *testing.T) {
 	if result != nil {
 		t.Errorf("Expected %v, got %v\n", nil, result)
 	}
+}
+
+func (fc *fakeClient) CreateFileShare(ctx context.Context, in *pb.CreateFileShareOpts, opts ...grpc.CallOption) (*pb.GenericResponse, error) {
+	return nil, nil
+}
+
+func (fc *fakeClient) CreateFileShareAcl(ctx context.Context, in *pb.CreateFileShareAclOpts, opts ...grpc.CallOption) (*pb.GenericResponse, error) {
+	return nil, nil
+}
+
+func (fc *fakeClient) DeleteFileShareAcl(ctx context.Context, in *pb.DeleteFileShareAclOpts, opts ...grpc.CallOption) (*pb.GenericResponse, error) {
+	return nil, nil
+}
+
+// DeleteFileShare provides a mock function with given fields: ctx, in, opts
+func (fc *fakeClient) DeleteFileShare(ctx context.Context, in *pb.DeleteFileShareOpts, opts ...grpc.CallOption) (*pb.GenericResponse, error) {
+	return nil, nil
+}
+
+func (fc *fakeClient) CreateFileShareSnapshot(ctx context.Context, in *pb.CreateFileShareSnapshotOpts, opts ...grpc.CallOption) (*pb.GenericResponse, error) {
+	return nil, nil
+}
+
+func (fc *fakeClient) DeleteFileShareSnapshot(ctx context.Context, in *pb.DeleteFileShareSnapshotOpts, opts ...grpc.CallOption) (*pb.GenericResponse, error) {
+	return nil, nil
+}
+
+func (fc *fakeClient) GetMetrics(ctx context.Context, in *pb.GetMetricsOpts, opts ...grpc.CallOption) (*pb.GenericResponse, error) {
+	return nil, nil
+}
+
+func (fc *fakeClient) GetUrls(ctx context.Context, in *pb.NoParams, opts ...grpc.CallOption) (*pb.GenericResponse, error) {
+	return nil, nil
 }

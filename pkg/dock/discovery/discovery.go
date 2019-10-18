@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Huawei Technologies Co., Ltd. All Rights Reserved.
+// Copyright 2017 The OpenSDS Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,11 +29,14 @@ import (
 	log "github.com/golang/glog"
 	"github.com/opensds/opensds/contrib/connector"
 	"github.com/opensds/opensds/contrib/drivers"
+	fd "github.com/opensds/opensds/contrib/drivers/filesharedrivers"
+	"github.com/opensds/opensds/contrib/drivers/utils/config"
 	c "github.com/opensds/opensds/pkg/context"
 	"github.com/opensds/opensds/pkg/db"
 	"github.com/opensds/opensds/pkg/model"
+	"github.com/opensds/opensds/pkg/utils"
 	. "github.com/opensds/opensds/pkg/utils/config"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 type Context struct {
@@ -126,13 +129,41 @@ func (pdd *provisionDockDiscoverer) Init() error {
 	return nil
 }
 
+var filesharedrivers = []string{config.NFSDriverType, config.HuaweiOceanFileDriverType, config.ManilaDriverType, config.ChubaofsDriverType}
+
 func (pdd *provisionDockDiscoverer) Discover() error {
 	// Clear existing pool info
 	pdd.pols = pdd.pols[:0]
-
+	var pols []*model.StoragePoolSpec
+	var err error
 	for _, dck := range pdd.dcks {
 		// Call function of StorageDrivers configured by storage drivers.
-		pols, err := drivers.Init(dck.DriverName).ListPools()
+		if utils.Contains(filesharedrivers, dck.DriverName) {
+			d := fd.Init(dck.DriverName)
+			defer fd.Clean(d)
+			pols, err = d.ListPools()
+			for _, pol := range pols {
+				log.Infof("Backend %s discovered pool %s", dck.DriverName, pol.Name)
+				pol.DockId = dck.Id
+			}
+		} else {
+			d := drivers.Init(dck.DriverName)
+			defer drivers.Clean(d)
+			pols, err = d.ListPools()
+
+			replicationDriverName := dck.Metadata["HostReplicationDriver"]
+			replicationType := model.ReplicationTypeHost
+			if drivers.IsSupportArrayBasedReplication(dck.DriverName) {
+				replicationType = model.ReplicationTypeArray
+				replicationDriverName = dck.DriverName
+			}
+			for _, pol := range pols {
+				log.Infof("Backend %s discovered pool %s", dck.DriverName, pol.Name)
+				pol.DockId = dck.Id
+				pol.ReplicationType = replicationType
+				pol.ReplicationDriverName = replicationDriverName
+			}
+		}
 		if err != nil {
 			log.Error("Call driver to list pools failed:", err)
 			continue
@@ -142,18 +173,6 @@ func (pdd *provisionDockDiscoverer) Discover() error {
 			log.Warningf("The pool of dock %s is empty!\n", dck.Id)
 		}
 
-		replicationDriverName := dck.Metadata["HostReplicationDriver"]
-		replicationType := model.ReplicationTypeHost
-		if drivers.IsSupportHostBasedReplication(dck.DriverName) {
-			replicationType = model.ReplicationTypeArray
-			replicationDriverName = dck.DriverName
-		}
-		for _, pol := range pols {
-			log.Infof("Backend %s discovered pool %s", dck.DriverName, pol.Name)
-			pol.DockId = dck.Id
-			pol.ReplicationType = replicationType
-			pol.ReplicationDriverName = replicationDriverName
-		}
 		pdd.pols = append(pdd.pols, pols...)
 	}
 	if len(pdd.pols) == 0 {
@@ -201,12 +220,9 @@ func (add *attachDockDiscoverer) Discover() error {
 		return err
 	}
 
-	var localIqn string
-
-	localIqn, err = connector.NewConnector(connector.IscsiDriver).GetInitiatorInfo()
+	localIqn, err := connector.NewConnector(connector.IscsiDriver).GetInitiatorInfo()
 	if err != nil {
-		log.Error("get initiator failed", err)
-		return err
+		log.Warning("get initiator failed, ", err)
 	}
 
 	bindIp := CONF.BindIp
@@ -216,12 +232,10 @@ func (add *attachDockDiscoverer) Discover() error {
 
 	fcInitiator, err := connector.NewConnector(connector.FcDriver).GetInitiatorInfo()
 	if err != nil {
-		log.Error("get initiator failed", err)
-		return err
+		log.Warning("get initiator failed, ", err)
 	}
 
 	var wwpns []string
-
 	for _, v := range strings.Split(fcInitiator, ",") {
 		if strings.Contains(v, "node_name") {
 			wwpns = append(wwpns, strings.Split(v, ":")[1])

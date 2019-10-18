@@ -2,17 +2,17 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/opensds/opensds?branch=master)](https://goreportcard.com/report/github.com/opensds/opensds)
 [![Build Status](https://travis-ci.org/opensds/opensds.svg?branch=master)](https://travis-ci.org/opensds/opensds)
-[![Coverage Status](https://coveralls.io/repos/github/opensds/opensds/badge.svg?branch=master)](https://coveralls.io/github/opensds/opensds?branch=master)
+[![codecov.io](https://codecov.io/github/opensds/opensds/coverage.svg?branch=master)](https://codecov.io/github/opensds/opensds?branch=master)
 [![Releases](https://img.shields.io/github/release/opensds/opensds/all.svg?style=flat-square)](https://github.com/opensds/opensds/releases)
 [![LICENSE](https://img.shields.io/github/license/opensds/opensds.svg?style=flat-square)](https://github.com/opensds/opensds/blob/master/LICENSE)
 
 <img src="https://www.opensds.io/wp-content/uploads/sites/18/2016/11/logo_opensds.png" width="100">
 
-## Latest Release: v0.4.0 Bali
+## Latest Release: v0.6.0 Capri
 
-[OpenAPI doc](http://petstore.swagger.io/?url=https://raw.githubusercontent.com/opensds/opensds/v0.4.0/openapi-spec/swagger.yaml)
+[OpenAPI doc](http://petstore.swagger.io/?url=https://raw.githubusercontent.com/opensds/opensds/v0.6.0/openapi-spec/swagger.yaml)
 
-[Release notes](https://github.com/opensds/opensds/releases/tag/v0.4.0)
+[Release notes](https://github.com/opensds/opensds/releases/tag/v0.6.0)
 
 ## Introduction
 
@@ -67,6 +67,10 @@ development for OpenSDS.
 
 Please refer to [INSTALL](INSTALL.md) for any requirements when you want to perform code
 development for OpenSDS.
+
+## Auto-generated SDK
+
+To generate SDK (e.g. Java, C#, Ruby, etc) to access the REST API, please consider using [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator) given the [OpenAPI/Swagger spec](https://raw.githubusercontent.com/opensds/opensds/master/openapi-spec/swagger.yaml). If you need help with OpenAPI Generator, please reach out to the OpenAPI Generator community by opening an [issue](https://github.com/OpenAPITools/openapi-generator/issues/new).
 
 ## License
 

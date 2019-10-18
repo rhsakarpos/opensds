@@ -1,16 +1,16 @@
-// Copyright (c) 2017 Huawei Technologies Co., Ltd. All Rights Reserved.
+// Copyright 2017 The OpenSDS Authors.
 //
-//    Licensed under the Apache License, Version 2.0 (the "License"); you may
-//    not use this file except in compliance with the License. You may obtain
-//    a copy of the License at
+// Licensed under the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License. You may obtain
+// a copy of the License at
 //
-//         http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-//    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-//    License for the specific language governing permissions and limitations
-//    under the License.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
 
 package lvm
 
@@ -31,7 +31,7 @@ import (
 	pb "github.com/opensds/opensds/pkg/model/proto"
 	"github.com/opensds/opensds/pkg/utils"
 	"github.com/opensds/opensds/pkg/utils/config"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -232,6 +232,7 @@ func (d *Driver) ExtendVolume(opt *pb.ExtendVolumeOpts) (*model.VolumeSpec, erro
 }
 
 func (d *Driver) InitializeConnection(opt *pb.CreateVolumeAttachmentOpts) (*model.ConnectionInfo, error) {
+	log.V(8).Infof("lvm initialize connection information: %v", opt)
 	initiator := opt.HostInfo.GetInitiator()
 	if initiator == "" {
 		initiator = "ALL"
@@ -239,7 +240,7 @@ func (d *Driver) InitializeConnection(opt *pb.CreateVolumeAttachmentOpts) (*mode
 
 	hostIP := opt.HostInfo.GetIp()
 	if hostIP == "" {
-		hostIP = "ALL"
+		hostIP = d.conf.TgtBindIp
 	}
 
 	lvPath, ok := opt.GetMetadata()[KLvPath]
@@ -263,6 +264,8 @@ func (d *Driver) InitializeConnection(opt *pb.CreateVolumeAttachmentOpts) (*mode
 		return nil, err
 	}
 
+	log.V(8).Infof("lvm ConnectionData: %v", expt)
+
 	return &model.ConnectionInfo{
 		DriverVolumeType: accPro,
 		ConnectionData:   expt,
@@ -270,9 +273,10 @@ func (d *Driver) InitializeConnection(opt *pb.CreateVolumeAttachmentOpts) (*mode
 }
 
 func (d *Driver) TerminateConnection(opt *pb.DeleteVolumeAttachmentOpts) error {
+	log.V(8).Infof("TerminateConnection: opt info is %v", opt)
 	accPro := opt.AccessProtocol
 	t := targets.NewTarget(d.conf.TgtBindIp, d.conf.TgtConfDir, accPro)
-	if err := t.RemoveExport(opt.GetVolumeId()); err != nil {
+	if err := t.RemoveExport(opt.GetVolumeId(), opt.GetHostInfo().GetIp()); err != nil {
 		log.Error("failed to terminate connection of logic volume:", err)
 		return err
 	}
@@ -313,7 +317,7 @@ func (d *Driver) AttachSnapshot(snapshotId string, lvsPath string) (string, *mod
 	if err != nil {
 		return "", nil, err
 	}
-	log.Infof("Attach snapshot success, MountPoint:%s", mountPoint)
+	log.V(8).Infof("Attach snapshot success, MountPoint:%s", mountPoint)
 	return mountPoint, info, nil
 }
 
@@ -385,7 +389,6 @@ func (d *Driver) deleteUploadedSnapshot(backupId string, bucket string) error {
 		Id:       backupId,
 		Metadata: metadata,
 	}
-
 	if err := mc.Delete(b); err != nil {
 		log.Errorf("delete backup snapshot  failed, err: %v", err)
 		return err
@@ -506,6 +509,7 @@ func (d *Driver) ListPools() ([]*model.StoragePoolSpec, error) {
 			StorageType:      d.conf.Pool[vg.Name].StorageType,
 			Extras:           d.conf.Pool[vg.Name].Extras,
 			AvailabilityZone: d.conf.Pool[vg.Name].AvailabilityZone,
+			MultiAttach:      d.conf.Pool[vg.Name].MultiAttach,
 		}
 		if pol.AvailabilityZone == "" {
 			pol.AvailabilityZone = "default"
@@ -523,7 +527,7 @@ func (d *Driver) InitializeSnapshotConnection(opt *pb.CreateSnapshotAttachmentOp
 
 	hostIP := opt.HostInfo.GetIp()
 	if hostIP == "" {
-		hostIP = "ALL"
+		hostIP = d.conf.TgtBindIp
 	}
 
 	lvsPath, ok := opt.GetMetadata()[KLvsPath]
@@ -558,14 +562,14 @@ func (d *Driver) InitializeSnapshotConnection(opt *pb.CreateSnapshotAttachmentOp
 
 func (d *Driver) TerminateSnapshotConnection(opt *pb.DeleteSnapshotAttachmentOpts) error {
 	accPro := opt.AccessProtocol
-	if accPro == nvmeofAccess{
+	if accPro == nvmeofAccess {
 		log.Infof("nvmet right now can not support snap volume serve as nvme target")
 		log.Infof("still create snapshot connection by iscsi")
 		accPro = iscsiAccess
 	}
 	log.Info("terminate snapshot conn")
 	t := targets.NewTarget(d.conf.TgtBindIp, d.conf.TgtConfDir, accPro)
-	if err := t.RemoveExport(opt.GetSnapshotId()); err != nil {
+	if err := t.RemoveExport(opt.GetSnapshotId(), opt.GetHostInfo().GetIp()); err != nil {
 		log.Error("Failed to terminate snapshot connection of logic volume:", err)
 		return err
 	}

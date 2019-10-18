@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Huawei Technologies Co., Ltd. All Rights Reserved.
+// Copyright 2017 The OpenSDS Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import (
 	pb "github.com/opensds/opensds/pkg/model/proto"
 	"github.com/opensds/opensds/pkg/utils/config"
 	"github.com/opensds/opensds/pkg/utils/pwd"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -147,7 +147,7 @@ func (d *Driver) Setup() error {
 			return err
 		}
 
-		d.blockStoragev2, err = noauth.NewBlockStorageV2(provider, noauth.EndpointOpts{
+		d.blockStoragev2, err = noauth.NewBlockStorageNoAuth(provider, noauth.EndpointOpts{
 			CinderEndpoint: d.conf.CinderEndpoint,
 		})
 		if err != nil {
@@ -252,7 +252,7 @@ func (d *Driver) PullVolume(volID string) (*model.VolumeSpec, error) {
 // DeleteVolume
 func (d *Driver) DeleteVolume(req *pb.DeleteVolumeOpts) error {
 	cinderVolId := req.Metadata[KCinderVolumeId]
-	if err := volumesv2.Delete(d.blockStoragev2, cinderVolId).ExtractErr(); err != nil {
+	if err := volumesv2.Delete(d.blockStoragev2, cinderVolId, nil).ExtractErr(); err != nil {
 		log.Error("Cannot delete volume:", err)
 		return err
 	}
@@ -463,6 +463,7 @@ func (d *Driver) ListPools() ([]*model.StoragePoolSpec, error) {
 			StorageType:      d.conf.Pool[page.Name].StorageType,
 			AvailabilityZone: d.conf.Pool[page.Name].AvailabilityZone,
 			Extras:           d.conf.Pool[page.Name].Extras,
+			MultiAttach:      d.conf.Pool[page.Name].MultiAttach,
 		}
 		pols = append(pols, pol)
 	}
